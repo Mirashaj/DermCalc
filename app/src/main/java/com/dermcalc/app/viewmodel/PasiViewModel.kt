@@ -4,108 +4,78 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
-enum class BodyRegion(val displayName: String, val weight: Double) {
-    HEAD("Testa", 0.1),
-    UPPER_LIMBS("Arti sup.", 0.2),
-    TRUNK("Tronco", 0.3),
-    LOWER_LIMBS("Arti inf.", 0.4)
+enum class PasiRegion(val title: String, val weight: Float) {
+    HEAD("Testa", 0.1f),
+    UPPER_LIMBS("Arti Superiori", 0.2f),
+    TRUNK("Tronco", 0.3f),
+    LOWER_LIMBS("Arti Inferiori", 0.4f)
 }
 
-data class PasiRegionData(
-    val erythema: Int? = null,
-    val induration: Int? = null,
-    val desquamation: Int? = null,
-    val area: Int? = null
+data class PasiRegionState(
+    val erythema: String = "0",
+    val induration: String = "0",
+    val desquamation: String = "0",
+    val area: String = "0"
 ) {
-    val isValid: Boolean
-        get() = (erythema in 0..4 || erythema == null) &&
-                (induration in 0..4 || induration == null) &&
-                (desquamation in 0..4 || desquamation == null) &&
-                (area in 0..6 || area == null)
+    // Validazione istantanea con blocco ed evidenziazione rossa
+    val erythemaError: Boolean get() = (erythema.toIntOrNull() ?: 0) !in 0..4
+    val indurationError: Boolean get() = (induration.toIntOrNull() ?: 0) !in 0..4
+    val desquamationError: Boolean get() = (desquamation.toIntOrNull() ?: 0) !in 0..4
+    val areaError: Boolean get() = (area.toIntOrNull() ?: 0) !in 0..6
+    val hasError: Boolean get() = erythemaError || indurationError || desquamationError || areaError
 }
-
-data class PasiUiState(
-    val currentRegion: BodyRegion = BodyRegion.HEAD,
-    val regionsData: Map<BodyRegion, PasiRegionData> = BodyRegion.values().associateWith { PasiRegionData() },
-    val calculatedScore: Double? = null,
-    val validationError: String? = null
-)
 
 class PasiViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(PasiUiState())
-    val uiState: StateFlow<PasiUiState> = _uiState.asStateFlow()
+    private val _currentStep = MutableStateFlow(0)
+    val currentStep: StateFlow<Int> = _currentStep.asStateFlow()
 
-    fun selectRegion(region: BodyRegion) {
-        _uiState.update { 
-            it.copy(
-                currentRegion = region,
-                validationError = null
-            ) 
+    private val _regionStates = MutableStateFlow(List(4) { PasiRegionState() })
+    val regionStates: StateFlow<List<PasiRegionState>> = _regionStates.asStateFlow()
+
+    fun updateField(stepIndex: Int, field: String, value: String) {
+        // Accetta input vuoto o numeri. Blocca lettere testuali
+        if (value.isNotEmpty() && value.toIntOrNull() == null) return 
+
+        val currentList = _regionStates.value.toMutableList()
+        val currentState = currentList[stepIndex]
+        val newState = when(field) {
+            "erythema" -> currentState.copy(erythema = value)
+            "induration" -> currentState.copy(induration = value)
+            "desquamation" -> currentState.copy(desquamation = value)
+            "area" -> currentState.copy(area = value)
+            else -> currentState
+        }
+        currentList[stepIndex] = newState
+        _regionStates.value = currentList
+    }
+
+    fun nextStep() {
+        if (_currentStep.value < 3) {
+            _currentStep.value++
         }
     }
 
-    fun updateParameter(
-        erythema: Int? = null,
-        induration: Int? = null,
-        desquamation: Int? = null,
-        area: Int? = null
-    ) {
-        val currentState = _uiState.value
-        val region = currentState.currentRegion
-        val currentData = currentState.regionsData[region] ?: PasiRegionData()
-
-        val e = erythema ?: currentData.erythema
-        val i = induration ?: currentData.induration
-        val d = desquamation ?: currentData.desquamation
-        val a = area ?: currentData.area
-
-        var error: String? = null
-        if ((e != null && e !in 0..4) || (i != null && i !in 0..4) || (d != null && d !in 0..4)) {
-            error = "I valori delle lesioni devono essere compresi tra 0 e 4."
-        } else if (a != null && a !in 0..6) {
-            error = "L'area deve essere compresa tra 0 e 6."
-        }
-
-        val updatedData = PasiRegionData(e, i, d, a)
-        val updatedMap = currentState.regionsData.toMutableMap().apply {
-            put(region, updatedData)
-        }
-
-        _uiState.update {
-            it.copy(
-                regionsData = updatedMap,
-                validationError = error
-            )
+    fun previousStep() {
+        if (_currentStep.value > 0) {
+            _currentStep.value--
         }
     }
 
-    fun calculateScore() {
-        val state = _uiState.value
-        
-        if (state.validationError != null) return
-
-        var totalScore = 0.0
-        for ((region, data) in state.regionsData) {
-            val e = data.erythema ?: 0
-            val i = data.induration ?: 0
-            val d = data.desquamation ?: 0
-            val a = data.area ?: 0
-
-            val regionScore = (e + i + d) * a * region.weight
-            totalScore += regionScore
+    fun calculateTotalScore(): Float {
+        var total = 0f
+        val states = _regionStates.value
+        states.forEachIndexed { index, state ->
+            val e = state.erythema.toIntOrNull() ?: 0
+            val i = state.induration.toIntOrNull() ?: 0
+            val d = state.desquamation.toIntOrNull() ?: 0
+            val a = state.area.toIntOrNull() ?: 0
+            
+            // Per il PASI l'area va convertita in fattore proporzionale (1=10%, 2=20-29%...).
+            // Ci semplifichiamo usandola come moltiplicatore diretto da formula:
+            val weight = PasiRegion.entries[index].weight
+            total += (e + i + d) * a * weight
         }
-
-        _uiState.update { it.copy(calculatedScore = totalScore) }
-    }
-    
-    fun getClinicalInterpretation(score: Double): String {
-        return when {
-            score == 0.0 -> "Niente"
-            score < 10.0 -> "Lieve"
-            score <= 20.0 -> "Moderata"
-            else -> "Severa"
-        }
+        return total
     }
 }
