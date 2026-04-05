@@ -138,7 +138,7 @@ fun HistoryCard(record: CalculationRecord) {
                 Text(
                     text = "Esito: ${record.resultInterpretation}",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (record.resultInterpretation == "Severa") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+                    color = if (record.resultInterpretation.contains("Severa")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Bold
                 )
             }

@@ -11,6 +11,9 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Home : Screen("home")
     object Pasi : Screen("pasi")
+    object Easi : Screen("easi")
+    object Bmi : Screen("bmi")
+    object Bsa : Screen("bsa")
     object History : Screen("history")
     object Result : Screen("result/{score}/{type}") {
         fun createRoute(score: Float, type: String) = "result/$score/$type"
@@ -30,6 +33,9 @@ fun NavGraph(navController: NavHostController) {
         composable(route = Screen.Home.route) {
             HomeScreen(
                 onNavigateToPasi = { navController.navigate(Screen.Pasi.route) },
+                onNavigateToEasi = { navController.navigate(Screen.Easi.route) },
+                onNavigateToBmi = { navController.navigate(Screen.Bmi.route) },
+                onNavigateToBsa = { navController.navigate(Screen.Bsa.route) },
                 onNavigateToHistory = { navController.navigate(Screen.History.route) }
             )
         }
@@ -41,6 +47,36 @@ fun NavGraph(navController: NavHostController) {
                         popUpTo(Screen.Pasi.route) { inclusive = true }
                     }
                 }     
+            )
+        }
+        composable(route = Screen.Easi.route) {
+            EasiScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToResult = { score -> 
+                    navController.navigate(Screen.Result.createRoute(score, "EASI")) {
+                        popUpTo(Screen.Easi.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(route = Screen.Bmi.route) {
+            BmiScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToResult = { score -> 
+                    navController.navigate(Screen.Result.createRoute(score, "BMI")) {
+                        popUpTo(Screen.Bmi.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(route = Screen.Bsa.route) {
+            BsaScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToResult = { score -> 
+                    navController.navigate(Screen.Result.createRoute(score, "BSA")) {
+                        popUpTo(Screen.Bsa.route) { inclusive = true }
+                    }
+                }
             )
         }
         composable(

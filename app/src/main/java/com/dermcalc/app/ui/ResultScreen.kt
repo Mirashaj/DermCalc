@@ -31,12 +31,35 @@ class ResultViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     
-    fun interpretPasi(score: Float): String {
-        return when {
-            score < 3 -> "Lieve"
-            score <= 10 -> "Moderata"
-            else -> "Severa"
+    fun interpretResult(type: String, score: Float): String {
+        if (type == "PASI") {
+            return when {
+                score < 3 -> "Lieve"
+                score <= 10 -> "Moderata"
+                else -> "Severa"
+            }
+        } else if (type == "EASI") {
+            return when {
+                score == 0f -> "Sano"
+                score <= 1.0f -> "Quasi Sano"
+                score <= 7.0f -> "Lieve"
+                score <= 21.0f -> "Moderata"
+                score <= 50.0f -> "Severa"
+                else -> "Molto Severa"
+            }
+        } else if (type == "BMI") {
+            return when {
+                score < 18.5f -> "Sottopeso"
+                score < 25.0f -> "Normopeso"
+                score < 30.0f -> "Sovrappeso"
+                score < 35.0f -> "Obesità Grado I"
+                score < 40.0f -> "Obesità Grado II (Severa)"
+                else -> "Obesità Grado III (Molto Severa)"
+            }
+        } else if (type == "BSA") {
+            return "m²"
         }
+        return "Sconosciuta"
     }
 }
 
@@ -48,7 +71,7 @@ fun ResultScreen(
     onNavigateHome: () -> Unit,
     viewModel: ResultViewModel = viewModel()
 ) {
-    val interpretation = remember(score) { viewModel.interpretPasi(score) }
+    val interpretation = remember(score) { viewModel.interpretResult(calculatorType, score) }
     
     // Auto-salvataggio istantaneo su database locale
     LaunchedEffect(Unit) {
@@ -81,26 +104,38 @@ fun ResultScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             
-            Text(
-                text = String.format("%.1f", score), // Formattazione a 1 decimale
-                style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+            
+            if (calculatorType == "BSA") {
+                Text(
+                    text = String.format("%.2f m²", score), 
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Text(
+                    text = String.format("%.1f", score), // Formattazione a 1 decimale
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             Spacer(modifier = Modifier.height(48.dp))
             
-            Text(
-                text = "Interpretazione clinica:",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = interpretation,
-                style = MaterialTheme.typography.headlineMedium,
-                color = if (interpretation == "Severa") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
-            )
-            
-            Spacer(modifier = Modifier.height(64.dp))
+            if (calculatorType != "BSA") {
+                Text(
+                    text = "Interpretazione clinica:",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = interpretation,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = if (interpretation.contains("Severa")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.height(64.dp))
+            } else {
+                Spacer(modifier = Modifier.height(64.dp))
+            }
             
             Button(
                 onClick = onNavigateHome,

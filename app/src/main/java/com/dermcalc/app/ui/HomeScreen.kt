@@ -12,6 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(
     onNavigateToPasi: () -> Unit,
+    onNavigateToEasi: () -> Unit = {},
+    onNavigateToBmi: () -> Unit = {},
+    onNavigateToBsa: () -> Unit = {},
     onNavigateToHistory: () -> Unit
 ) {
     Column(
@@ -57,7 +60,7 @@ fun HomeScreen(
                 CalculatorCard(
                     title = "EASI",
                     modifier = Modifier.weight(1f),
-                    onClick = { /* TODO EASI */ }
+                    onClick = onNavigateToEasi
                 )
             }
             Row(
@@ -67,12 +70,12 @@ fun HomeScreen(
                 CalculatorCard(
                     title = "BMI",
                     modifier = Modifier.weight(1f),
-                    onClick = { /* TODO BMI */ }
+                    onClick = onNavigateToBmi
                 )
                 CalculatorCard(
                     title = "BSA",
                     modifier = Modifier.weight(1f),
-                    onClick = { /* TODO BSA */ }
+                    onClick = onNavigateToBsa
                 )
             }
         }
