@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 @Database(entities = [CalculationRecord::class], version = 1, exportSchema = false)
 abstract class DermCalcDatabase : RoomDatabase() {
 
-    abstract fun calculationDao(): CalculationDao // Returns DAO for history / auto-save
+    abstract fun calculationDao(): CalculationDao
 
     companion object {
         @Volatile

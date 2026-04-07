@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.sqrt
 
-// We use the Mosteller formula: BSA = sqrt((weight_kg * height_cm) / 3600)
-// This is the most widely used formula in practice.
+
+
 
 data class BsaState(
     val weightKg: String = "",

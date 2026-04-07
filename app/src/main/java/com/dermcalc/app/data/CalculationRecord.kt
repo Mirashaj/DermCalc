@@ -7,8 +7,8 @@ import androidx.room.PrimaryKey
 data class CalculationRecord(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val calculatorType: String, // PASI, EASI, BMI, BSA
+    val calculatorType: String,
     val score: Float,
-    val resultInterpretation: String, // lieve, moderata, severa...
+    val resultInterpretation: String,
     val timestamp: Long = System.currentTimeMillis()
 )

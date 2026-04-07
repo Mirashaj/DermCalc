@@ -9,13 +9,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 
-// "Tema clinico con blu primario, sfondo bianco, rosso per errori di validazione"
+
 private val LightColorScheme = lightColorScheme(
     primary = ClinicalBlue,
     onPrimary = Color.White,
     primaryContainer = ClinicalBlueDark,
     onPrimaryContainer = Color.White,
-    secondary = ClinicalBlue, // Usiamo blu anche per bottoni secondari ove applicabile
+    secondary = ClinicalBlue, 
     onSecondary = Color.White,
     error = ValidationErrorRed,
     onError = Color.White,

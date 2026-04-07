@@ -34,7 +34,7 @@ class ResultViewModel(application: Application) : AndroidViewModel(application) 
     fun interpretResult(type: String, score: Float): String {
         if (type == "PASI") {
             return when {
-                score < 3 -> "Lieve"
+                score < 5 -> "Lieve"
                 score <= 10 -> "Moderata"
                 else -> "Severa"
             }
@@ -73,7 +73,6 @@ fun ResultScreen(
 ) {
     val interpretation = remember(score) { viewModel.interpretResult(calculatorType, score) }
     
-    // Auto-salvataggio istantaneo su database locale
     LaunchedEffect(Unit) {
         viewModel.saveResult(calculatorType, score, interpretation)
     }
@@ -113,7 +112,7 @@ fun ResultScreen(
                 )
             } else {
                 Text(
-                    text = String.format("%.1f", score), // Formattazione a 1 decimale
+                    text = String.format("%.1f", score),
                     style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.primary
                 )

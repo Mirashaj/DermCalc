@@ -16,13 +16,20 @@ data class PasiRegionState(
     val erythema: String = "0",
     val induration: String = "0",
     val desquamation: String = "0",
-    val area: String = "0"
+    val area: String = "0",
+    val isAreaPercentage: Boolean = false
 ) {
-    // Validazione istantanea con blocco ed evidenziazione rossa
-    val erythemaError: Boolean get() = (erythema.toIntOrNull() ?: 0) !in 0..4
-    val indurationError: Boolean get() = (induration.toIntOrNull() ?: 0) !in 0..4
-    val desquamationError: Boolean get() = (desquamation.toIntOrNull() ?: 0) !in 0..4
-    val areaError: Boolean get() = (area.toIntOrNull() ?: 0) !in 0..6
+    
+    val erythemaError: Boolean get() = (erythema.toIntOrNull() ?: -1) !in 0..4
+    val indurationError: Boolean get() = (induration.toIntOrNull() ?: -1) !in 0..4
+    val desquamationError: Boolean get() = (desquamation.toIntOrNull() ?: -1) !in 0..4
+    val areaError: Boolean get() = if (isAreaPercentage) {
+        val v = area.replace(",", ".").toFloatOrNull()
+        v == null || v !in 0f..100f
+    } else {
+        val v = area.toIntOrNull()
+        v == null || v !in 0..6
+    }
     val hasError: Boolean get() = erythemaError || indurationError || desquamationError || areaError
 }
 
@@ -34,20 +41,33 @@ class PasiViewModel : ViewModel() {
     val regionStates: StateFlow<List<PasiRegionState>> = _regionStates.asStateFlow()
 
     fun updateField(stepIndex: Int, field: String, value: String) {
-        // Accetta input vuoto o numeri. Blocca lettere testuali
-        if (value.isNotEmpty() && value.toIntOrNull() == null) return 
-
         val currentList = _regionStates.value.toMutableList()
         val currentState = currentList[stepIndex]
+        
+        val sanitized = value.replace(",", ".")
+        if (sanitized.isNotEmpty() && sanitized != ".") {
+            if (field == "area" && currentState.isAreaPercentage) {
+                if (sanitized.toFloatOrNull() == null) return
+            } else {
+                if (sanitized.toIntOrNull() == null) return
+            }
+        }
+
         val newState = when(field) {
             "erythema" -> currentState.copy(erythema = value)
             "induration" -> currentState.copy(induration = value)
-            "desquamation" -> currentState.copy(desquamation = value)
-            "area" -> currentState.copy(area = value)
+            "desquamation" -> currentState.copy(desquamation = sanitized)
+            "area" -> currentState.copy(area = sanitized)
             else -> currentState
         }
         currentList[stepIndex] = newState
         _regionStates.value = currentList
+    }
+
+    fun toggleAreaMode(isPercentage: Boolean) {
+        _regionStates.value = _regionStates.value.map {
+            it.copy(isAreaPercentage = isPercentage, area = "0")
+        }
     }
 
     fun nextStep() {
@@ -69,10 +89,24 @@ class PasiViewModel : ViewModel() {
             val e = state.erythema.toIntOrNull() ?: 0
             val i = state.induration.toIntOrNull() ?: 0
             val d = state.desquamation.toIntOrNull() ?: 0
-            val a = state.area.toIntOrNull() ?: 0
+
+            val a = if (state.isAreaPercentage) {
+                val p = state.area.replace(",", ".").toFloatOrNull() ?: 0f
+                when {
+                    p <= 0f -> 0
+                    p < 10f -> 1
+                    p < 30f -> 2
+                    p < 50f -> 3
+                    p < 70f -> 4
+                    p < 90f -> 5
+                    else -> 6
+                }
+            } else {
+                state.area.toIntOrNull() ?: 0
+            }
             
-            // Per il PASI l'area va convertita in fattore proporzionale (1=10%, 2=20-29%...).
-            // Ci semplifichiamo usandola come moltiplicatore diretto da formula:
+            
+            
             val weight = PasiRegion.entries[index].weight
             total += (e + i + d) * a * weight
         }

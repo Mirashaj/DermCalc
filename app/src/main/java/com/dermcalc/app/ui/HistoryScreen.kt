@@ -21,7 +21,7 @@ import java.util.Locale
 
 class HistoryViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = DermCalcDatabase.getDatabase(application).calculationDao()
-    // Espone i flow per tutti i record e li ordina
+    
     val allRecords = dao.getAllRecords()
 }
 
@@ -33,7 +33,7 @@ fun HistoryScreen(
 ) {
     val records by viewModel.allRecords.collectAsState(initial = emptyList())
     var selectedFilter by remember { mutableStateOf("Tutti") }
-    // "La pagina Cronologia espone 4 sezioni filtrabili"
+    
     val filters = listOf("Tutti", "PASI", "EASI", "BMI", "BSA")
 
     Scaffold(

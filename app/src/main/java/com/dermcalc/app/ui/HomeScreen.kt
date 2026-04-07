@@ -99,7 +99,7 @@ fun CalculatorCard(title: String, modifier: Modifier = Modifier, onClick: () -> 
     ElevatedCard(
         onClick = onClick,
         modifier = modifier.aspectRatio(1f),
-        shape = MaterialTheme.shapes.medium, // 14dp come da specifiche
+        shape = MaterialTheme.shapes.medium, 
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )

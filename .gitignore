@@ -17,3 +17,5 @@ local.properties
 
 # app module overrides
 /app/build/
+
+commands

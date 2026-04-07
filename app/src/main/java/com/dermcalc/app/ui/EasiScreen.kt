@@ -52,30 +52,46 @@ fun EasiScreen(
                     label = "Eritema (0-3)",
                     value = currentState.erythema,
                     isError = currentState.erythemaError,
+                    errorMessage = "Il valore deve essere compreso tra 0 e 3",
                     onValueChange = { viewModel.updateField(currentStep, "erythema", it) }
                 )
                 PasiInputField(
                     label = "Edema/Papule (0-3)",
                     value = currentState.edema,
                     isError = currentState.edemaError,
+                    errorMessage = "Il valore deve essere compreso tra 0 e 3",
                     onValueChange = { viewModel.updateField(currentStep, "edema", it) }
                 )
                 PasiInputField(
                     label = "Escoriazioni (0-3)",
                     value = currentState.excoriation,
                     isError = currentState.excoriationError,
+                    errorMessage = "Il valore deve essere compreso tra 0 e 3",
                     onValueChange = { viewModel.updateField(currentStep, "excoriation", it) }
                 )
                 PasiInputField(
                     label = "Lichenificazione (0-3)",
                     value = currentState.lichenification,
                     isError = currentState.lichenificationError,
+                    errorMessage = "Il valore deve essere compreso tra 0 e 3",
                     onValueChange = { viewModel.updateField(currentStep, "lichenification", it) }
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Inserisci Area come Percentuale (%)", style = MaterialTheme.typography.bodyLarge)
+                    Switch(
+                        checked = currentState.isAreaPercentage,
+                        onCheckedChange = { viewModel.toggleAreaMode(it) }
+                    )
+                }
                 PasiInputField(
-                    label = "Area coperta (0-6)",
+                    label = if (currentState.isAreaPercentage) "Area coperta (0-100%)" else "Area coperta (0-6)",
                     value = currentState.area,
                     isError = currentState.areaError,
+                    errorMessage = if (currentState.isAreaPercentage) "Inserisci un valore % valido tra 0 e 100" else "Il valore deve essere compreso tra 0 e 6",
                     onValueChange = { viewModel.updateField(currentStep, "area", it) }
                 )
             }

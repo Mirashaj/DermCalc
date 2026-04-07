@@ -17,15 +17,22 @@ data class EasiRegionState(
     val edema: String = "0",
     val excoriation: String = "0",
     val lichenification: String = "0",
-    val area: String = "0"
+    val area: String = "0",
+    val isAreaPercentage: Boolean = false
 ) {
-    // Segni clinici 0-3 (EASI severity scale)
-    val erythemaError: Boolean get() = (erythema.toIntOrNull() ?: 0) !in 0..3
-    val edemaError: Boolean get() = (edema.toIntOrNull() ?: 0) !in 0..3
-    val excoriationError: Boolean get() = (excoriation.toIntOrNull() ?: 0) !in 0..3
-    val lichenificationError: Boolean get() = (lichenification.toIntOrNull() ?: 0) !in 0..3
-    // Area 0-6 (EASI area scale)
-    val areaError: Boolean get() = (area.toIntOrNull() ?: 0) !in 0..6
+    
+    val erythemaError: Boolean get() = (erythema.replace(",", ".").toFloatOrNull() ?: -1f) !in 0f..3f
+    val edemaError: Boolean get() = (edema.replace(",", ".").toFloatOrNull() ?: -1f) !in 0f..3f
+    val excoriationError: Boolean get() = (excoriation.replace(",", ".").toFloatOrNull() ?: -1f) !in 0f..3f
+    val lichenificationError: Boolean get() = (lichenification.replace(",", ".").toFloatOrNull() ?: -1f) !in 0f..3f
+    
+    val areaError: Boolean get() = if (isAreaPercentage) {
+        val v = area.replace(",", ".").toFloatOrNull()
+        v == null || v !in 0f..100f
+    } else {
+        val v = area.toIntOrNull()
+        v == null || v !in 0..6
+    }
     
     val hasError: Boolean get() = erythemaError || edemaError || excoriationError || lichenificationError || areaError
 }
@@ -38,16 +45,29 @@ class EasiViewModel : ViewModel() {
     val regionStates: StateFlow<List<EasiRegionState>> = _regionStates.asStateFlow()
 
     fun updateField(stepIndex: Int, field: String, value: String) {
-        if (value.isNotEmpty() && value.toIntOrNull() == null) return 
+        val sanitizedValue = value.replace(",", ".")
+        
+        if (sanitizedValue.isNotEmpty() && sanitizedValue != ".") {
+            if (field == "area") {
+                val currentMode = _regionStates.value[stepIndex].isAreaPercentage
+                if (currentMode) {
+                    if (sanitizedValue.toFloatOrNull() == null) return
+                } else {
+                    if (sanitizedValue.toIntOrNull() == null) return
+                }
+            } else {
+                if (sanitizedValue.toFloatOrNull() == null) return
+            }
+        }
 
         val currentList = _regionStates.value.toMutableList()
         val currentState = currentList[stepIndex]
         val newState = when(field) {
-            "erythema" -> currentState.copy(erythema = value)
-            "edema" -> currentState.copy(edema = value)
-            "excoriation" -> currentState.copy(excoriation = value)
-            "lichenification" -> currentState.copy(lichenification = value)
-            "area" -> currentState.copy(area = value)
+            "erythema" -> currentState.copy(erythema = sanitizedValue)
+            "edema" -> currentState.copy(edema = sanitizedValue)
+            "excoriation" -> currentState.copy(excoriation = sanitizedValue)
+            "lichenification" -> currentState.copy(lichenification = sanitizedValue)
+            "area" -> currentState.copy(area = sanitizedValue)
             else -> currentState
         }
         currentList[stepIndex] = newState
@@ -66,15 +86,34 @@ class EasiViewModel : ViewModel() {
         }
     }
 
+    fun toggleAreaMode(isPercentage: Boolean) {
+        _regionStates.value = _regionStates.value.map {
+            it.copy(isAreaPercentage = isPercentage, area = "0")
+        }
+    }
+
     fun calculateTotalScore(): Float {
         var total = 0f
         val states = _regionStates.value
         states.forEachIndexed { index, state ->
-            val erythema = state.erythema.toIntOrNull() ?: 0
-            val edema = state.edema.toIntOrNull() ?: 0
-            val excoriation = state.excoriation.toIntOrNull() ?: 0
-            val lichenification = state.lichenification.toIntOrNull() ?: 0
-            val area = state.area.toIntOrNull() ?: 0
+            val erythema = state.erythema.replace(",", ".").toFloatOrNull() ?: 0f
+            val edema = state.edema.replace(",", ".").toFloatOrNull() ?: 0f
+            val excoriation = state.excoriation.replace(",", ".").toFloatOrNull() ?: 0f
+            val lichenification = state.lichenification.replace(",", ".").toFloatOrNull() ?: 0f
+            val area = if (state.isAreaPercentage) {
+                val p = state.area.replace(",", ".").toFloatOrNull() ?: 0f
+                when {
+                    p <= 0f -> 0
+                    p < 10f -> 1
+                    p < 30f -> 2
+                    p < 50f -> 3
+                    p < 70f -> 4
+                    p < 90f -> 5
+                    else -> 6
+                }
+            } else {
+                state.area.toIntOrNull() ?: 0
+            }
             
             val multiplier = EasiRegion.entries[index].multiplier
             total += (erythema + edema + excoriation + lichenification) * area * multiplier

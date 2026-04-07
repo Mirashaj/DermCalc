@@ -57,24 +57,39 @@ fun PasiScreen(
                     label = "Eritema (0-4)",
                     value = currentState.erythema,
                     isError = currentState.erythemaError,
+                    errorMessage = "Il valore deve essere compreso tra 0 e 4",
                     onValueChange = { viewModel.updateField(currentStep, "erythema", it) }
                 )
                 PasiInputField(
                     label = "Indurimento (0-4)",
                     value = currentState.induration,
                     isError = currentState.indurationError,
+                    errorMessage = "Il valore deve essere compreso tra 0 e 4",
                     onValueChange = { viewModel.updateField(currentStep, "induration", it) }
                 )
                 PasiInputField(
                     label = "Desquamazione (0-4)",
                     value = currentState.desquamation,
                     isError = currentState.desquamationError,
+                    errorMessage = "Il valore deve essere compreso tra 0 e 4",
                     onValueChange = { viewModel.updateField(currentStep, "desquamation", it) }
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Inserisci Area come Percentuale (%)", style = MaterialTheme.typography.bodyLarge)
+                    Switch(
+                        checked = currentState.isAreaPercentage,
+                        onCheckedChange = { viewModel.toggleAreaMode(it) }
+                    )
+                }
                 PasiInputField(
-                    label = "Area coperta (0-6)",
+                    label = if (currentState.isAreaPercentage) "Area coperta (0-100%)" else "Area coperta (0-6)",
                     value = currentState.area,
                     isError = currentState.areaError,
+                    errorMessage = if (currentState.isAreaPercentage) "Inserisci un valore % valido tra 0 e 100" else "Il valore deve essere compreso tra 0 e 6",
                     onValueChange = { viewModel.updateField(currentStep, "area", it) }
                 )
             }
@@ -134,6 +149,7 @@ fun PasiInputField(
     label: String,
     value: String,
     isError: Boolean,
+    errorMessage: String = "Valore non valido",
     onValueChange: (String) -> Unit
 ) {
     Row(
@@ -146,9 +162,10 @@ fun PasiInputField(
             onValueChange = onValueChange,
             label = { Text(label) },
             isError = isError,
+            supportingText = if (isError) { { Text(errorMessage) } } else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f),
-            shape = MaterialTheme.shapes.medium, // 14dp
+            shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
                 errorBorderColor = MaterialTheme.colorScheme.error,
                 errorLabelColor = MaterialTheme.colorScheme.error,
@@ -156,7 +173,6 @@ fun PasiInputField(
             )
         )
         
-        // Frecce direzionali a schermo 
         Column {
             IconButton(
                 onClick = { 
