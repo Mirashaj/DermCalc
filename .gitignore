@@ -14,8 +14,11 @@
 .cxx
 local.properties
 .vscode/
+.idea
+/.idea/
+.idea/
 
-# app module overrides
+
 /app/build/
 
 commands
