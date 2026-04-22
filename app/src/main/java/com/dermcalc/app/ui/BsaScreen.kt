@@ -52,6 +52,11 @@ fun BsaScreen(
                     onValueChange = { viewModel.updateWeight(it) },
                     label = { Text("Peso (kg)") },
                     isError = state.weightError,
+                    supportingText = {
+                        if (state.weightError) {
+                            Text("Inserisci un peso valido (2 - 500 kg)")
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium
@@ -62,6 +67,11 @@ fun BsaScreen(
                     onValueChange = { viewModel.updateHeight(it) },
                     label = { Text("Altezza (cm)") },
                     isError = state.heightError,
+                    supportingText = {
+                        if (state.heightError) {
+                            Text("Inserisci un'altezza valida (30 - 300 cm)")
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium

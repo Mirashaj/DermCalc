@@ -9,8 +9,16 @@ data class BmiState(
     val weightKg: String = "",
     val heightCm: String = ""
 ) {
-    val weightError: Boolean get() = weightKg.isNotEmpty() && (weightKg.toFloatOrNull() ?: 0f) <= 0
-    val heightError: Boolean get() = heightCm.isNotEmpty() && (heightCm.toFloatOrNull() ?: 0f) <= 0
+    val weightError: Boolean get() {
+        if (weightKg.isEmpty()) return false
+        val w = weightKg.toFloatOrNull() ?: 0f
+        return w < 2f || w > 500f
+    }
+    val heightError: Boolean get() {
+        if (heightCm.isEmpty()) return false
+        val h = heightCm.toFloatOrNull() ?: 0f
+        return h < 30f || h > 300f
+    }
 
     val isValid: Boolean get() = weightKg.isNotEmpty() && heightCm.isNotEmpty() && !weightError && !heightError
 }
