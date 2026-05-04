@@ -2,10 +2,16 @@ package com.dermcalc.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccessibilityNew
+import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.MonitorWeight
+import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -54,11 +60,15 @@ fun HomeScreen(
             ) {
                 CalculatorCard(
                     title = "PASI",
+                    subtitle = "Indice di Psoriasi",
+                    icon = Icons.Outlined.PanTool,
                     modifier = Modifier.weight(1f),
                     onClick = onNavigateToPasi
                 )
                 CalculatorCard(
                     title = "EASI",
+                    subtitle = "Indice di Eczema",
+                    icon = Icons.Outlined.Face,
                     modifier = Modifier.weight(1f),
                     onClick = onNavigateToEasi
                 )
@@ -69,11 +79,15 @@ fun HomeScreen(
             ) {
                 CalculatorCard(
                     title = "BMI",
+                    subtitle = "Indice di Massa Corporea",
+                    icon = Icons.Outlined.MonitorWeight,
                     modifier = Modifier.weight(1f),
                     onClick = onNavigateToBmi
                 )
                 CalculatorCard(
                     title = "BSA",
+                    subtitle = "Superficie Corporea",
+                    icon = Icons.Outlined.AccessibilityNew,
                     modifier = Modifier.weight(1f),
                     onClick = onNavigateToBsa
                 )
@@ -95,23 +109,49 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalculatorCard(title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun CalculatorCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     ElevatedCard(
         onClick = onClick,
         modifier = modifier.aspectRatio(1f),
         shape = MaterialTheme.shapes.medium, 
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }
